@@ -10,7 +10,7 @@ import Foundation
 
 class FlickrClient {
     static func getPhotoResponse(pin: Pin, pageNo: String, photoResponseListener: PhotoResponseListener) {
-        let request = NSMutableURLRequest(url: URL(string: "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=661ef4740d9a403b8c15cf0599970d01&lat=\(pin.latitude)&lon=\(pin.longitude)&per_page=100&format=json&nojsoncallback=1&extras=url_q,url_o&page=\(pageNo)")!)
+        let request = NSMutableURLRequest(url: URL(string: "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=661ef4740d9a403b8c15cf0599970d01&lat=\(pin.latitude)&lon=\(pin.longitude)&per_page=20&format=json&nojsoncallback=1&extras=url_q,url_o&page=\(pageNo)")!)
         let session = URLSession.shared
         let task = session.dataTask(with: request as URLRequest) { data, response, error in
             if error != nil { // Handle error…

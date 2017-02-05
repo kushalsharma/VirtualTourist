@@ -42,13 +42,7 @@ extension MapController {
                     pin.latitude = annotation.coordinate.latitude
                     pin.longitude = annotation.coordinate.longitude
                     pin.title = annotation.title
-                    do {
-                        try self.stack?.saveContext()
-                    } catch {
-                        print("Error saving context")
-                    }
                     FlickrClient.getPhotoResponse(pin: pin, pageNo: "1", photoResponseListener: self)
-                    self.resetMapPins()
                 }
             } else {
                 print("Error with placemark")

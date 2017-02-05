@@ -11,6 +11,13 @@ import CoreData
 
 extension MapController: PhotoResponseListener {
     func onSuccess(photoResponse: PhotoResponse, pin: Pin) {
+        pin.pages = Int32(photoResponse.photos.pages)
+        do {
+            try self.stack?.saveContext()
+        } catch {
+            print("Error saving context")
+        }
+        self.resetMapPins()
         for photo in photoResponse.photos.photo {
             if let entity = NSEntityDescription.entity(forEntityName: "ImageData", in: (self.stack?.context)!) {
                 let imageData = ImageData(entity: entity, insertInto: self.stack?.context)

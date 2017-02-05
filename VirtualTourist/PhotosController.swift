@@ -10,21 +10,38 @@ import Foundation
 import UIKit
 import CoreData
 
-class PhotosController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+class PhotosController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PhotoResponseListener {
     @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var getNewImagesButton: UIButton!
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var stack: CoreDataStack? = nil
    
     var pin: Pin? = nil
     var images: [ImageData]?
     
+    fileprivate var itemsPerRow: CGFloat = 3
+    fileprivate let sectionInsets = UIEdgeInsets(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        let screenSize = UIScreen.main.bounds
+        if Int(screenSize.width) > 500 {
+            itemsPerRow = 6
+        }
         stack = appDelegate.stack
         collectionView.delegate = self
         collectionView.dataSource = self
-        images = imagesFetchRequest(pin: pin!)
-        collectionView.reloadData()
+        
+        reloadImagesFromStore()
+        
+        if images?.count == 0 {
+            if pin?.pages != 0 {
+                FlickrClient.getPhotoResponse(pin: pin!, pageNo: String(arc4random_uniform(UInt32((pin?.pages)!)) + 1), photoResponseListener: self)
+            } else {
+                getNewImagesButton.isEnabled = false
+                getNewImagesButton.setTitle("Images not available", for: .normal)
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -39,12 +56,20 @@ class PhotosController: UIViewController, UICollectionViewDataSource, UICollecti
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath as IndexPath) as! PhotoCell
         cell.photoImageView.image = nil
+        cell.photoImageView.backgroundColor = UIColor.lightGray
         cell.photoImageView.downloadedFrom(url: URL(string: images![indexPath.item].url!)!)
         return cell
     }
     
     // MARK: - UICollectionViewDelegate protocol
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        stack?.context.delete((images?[indexPath.item])!)
+        do {
+            try stack?.saveContext()
+        } catch {
+            print("Error saving context")
+        }
+        reloadImagesFromStore()
     }
     
     var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>? {
@@ -59,7 +84,68 @@ class PhotosController: UIViewController, UICollectionViewDataSource, UICollecti
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
+    
+    // MARK Flow layout callbacks
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
+        let paddingSpace = sectionInsets.left * (itemsPerRow + 1)
+        let availableWidth = view.frame.width - paddingSpace
+        let widthPerItem = availableWidth / itemsPerRow
+        
+        return CGSize(width: widthPerItem, height: widthPerItem)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) ->UIEdgeInsets {
+        return sectionInsets
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return sectionInsets.left
+    }
+    
+    func reloadImagesFromStore() {
+        images?.removeAll()
+        images = imagesFetchRequest(pin: pin!)
+        collectionView.reloadData()
+    }
+    
+    @IBAction func getNewImagesClicked(_ sender: UIButton) {
+        for image in images! {
+            stack?.context.delete(image)
+            do {
+                try stack?.saveContext()
+            } catch {
+                print("Error saving context")
+            }
+        }
+        let pageNo = String(arc4random_uniform(UInt32((pin?.pages)!)) + 1)
+        FlickrClient.getPhotoResponse(pin: pin!, pageNo: pageNo, photoResponseListener: self)
+    }
+    
+    func onSuccess(photoResponse: PhotoResponse, pin: Pin) {
+        for photo in photoResponse.photos.photo {
+            if let entity = NSEntityDescription.entity(forEntityName: "ImageData", in: (self.stack?.context)!) {
+                let imageData = ImageData(entity: entity, insertInto: self.stack?.context)
+                imageData.url = photo.urlQ
+                imageData.lat = pin.latitude
+                imageData.lon = pin.longitude
+                imageData.pin = pin
+            }
+        }
+        do {
+            try self.stack?.saveContext()
+        } catch {
+            print("Error saving context")
+        }
+        reloadImagesFromStore()
+    }
+    func onError() {
+        // TODO show error
+    }
 }
+
+// Image view extention
 
 extension UIImageView {
     func downloadedFrom(url: URL, contentMode mode: UIViewContentMode = .scaleAspectFit) {

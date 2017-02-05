@@ -95,18 +95,34 @@
                                     </collectionViewCell>
                                 </cells>
                             </collectionView>
+                            <button opaque="NO" alpha="0.90000000000000002" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="CXV-Jg-wOn">
+                                <rect key="frame" x="0.0" y="617" width="375" height="50"/>
+                                <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="GOL-04-9b5"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                <state key="normal" title="Get new images"/>
+                                <connections>
+                                    <action selector="getNewImagesClicked:" destination="O1X-Ba-ytC" eventType="touchUpInside" id="c6H-dK-bqz"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="gmg-Kd-t5p" firstAttribute="top" secondItem="2mR-FW-T3V" secondAttribute="top" id="29q-ya-hGy"/>
                             <constraint firstItem="gmg-Kd-t5p" firstAttribute="leading" secondItem="2mR-FW-T3V" secondAttribute="leading" id="LAH-gx-jj3"/>
                             <constraint firstAttribute="trailing" secondItem="gmg-Kd-t5p" secondAttribute="trailing" id="PI9-J8-M0v"/>
+                            <constraint firstItem="50I-re-1Y0" firstAttribute="top" secondItem="CXV-Jg-wOn" secondAttribute="bottom" id="YgF-it-vYJ"/>
+                            <constraint firstItem="CXV-Jg-wOn" firstAttribute="leading" secondItem="2mR-FW-T3V" secondAttribute="leading" id="Yhc-aa-F36"/>
+                            <constraint firstAttribute="trailing" secondItem="CXV-Jg-wOn" secondAttribute="trailing" id="bkI-O5-Mzi"/>
                             <constraint firstItem="50I-re-1Y0" firstAttribute="top" secondItem="gmg-Kd-t5p" secondAttribute="bottom" id="zPA-Lx-Dm9"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Photos" id="cK8-Bh-muk"/>
                     <connections>
                         <outlet property="collectionView" destination="gmg-Kd-t5p" id="0ib-Zt-teZ"/>
+                        <outlet property="getNewImagesButton" destination="CXV-Jg-wOn" id="zLv-Yu-Ybj"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="mWZ-pa-Wii" userLabel="First Responder" sceneMemberID="firstResponder"/>

@@ -22,7 +22,7 @@ class MapController: UIViewController, MKMapViewDelegate {
         super.viewDidLoad()
         stack = appDelegate.stack
         let longPressRecogniser = UILongPressGestureRecognizer(target: self, action: #selector(MapController.handleLongPress(_:)))
-        longPressRecogniser.minimumPressDuration = 2.0
+        longPressRecogniser.minimumPressDuration = 1.0
         mapView.addGestureRecognizer(longPressRecogniser)
         mapView.delegate = self
         resetMapPins()
