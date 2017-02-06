@@ -12,10 +12,10 @@
         <attribute name="longitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="pages" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="title" attributeType="String" syncable="YES"/>
-        <relationship name="images" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ImageData" inverseName="pin" inverseEntity="ImageData" syncable="YES"/>
+        <relationship name="images" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ImageData" inverseName="pin" inverseEntity="ImageData" syncable="YES"/>
     </entity>
     <elements>
-        <element name="ImageData" positionX="-54" positionY="18" width="128" height="120"/>
-        <element name="Pin" positionX="-63" positionY="-18" width="128" height="120"/>
+        <element name="ImageData" positionX="-54" positionY="18" width="128" height="118"/>
+        <element name="Pin" positionX="-288" positionY="24" width="128" height="118"/>
     </elements>
 </model>

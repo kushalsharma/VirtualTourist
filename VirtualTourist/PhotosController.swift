@@ -19,13 +19,15 @@ class PhotosController: UIViewController, UICollectionViewDataSource, UICollecti
     var pin: Pin? = nil
     var images: [ImageData]?
     
+    static let MARKER_VALUE: Int = 500
+    
     fileprivate var itemsPerRow: CGFloat = 3
     fileprivate let sectionInsets = UIEdgeInsets(top: 10.0, left: 10.0, bottom: 10.0, right: 10.0)
     
     override func viewDidLoad() {
         super.viewDidLoad()
         let screenSize = UIScreen.main.bounds
-        if Int(screenSize.width) > 500 {
+        if Int(screenSize.width) > PhotosController.MARKER_VALUE {
             itemsPerRow = 6
         }
         stack = appDelegate.stack

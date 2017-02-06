@@ -13,16 +13,9 @@ extension PhotosController: NSFetchedResultsControllerDelegate  {
     func imagesFetchRequest(pin: Pin) -> [ImageData] {
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ImageData")
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "url", ascending: true)]
+        fetchRequest.predicate = NSPredicate(format: "pin == %@", pin)
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: (stack?.context)!, sectionNameKeyPath: nil, cacheName: nil)
-        do {
-            let imageList = try stack!.context.fetch(fetchRequest) as! [ImageData]
-            var filteredImageList: [ImageData] = Array()
-            for image in imageList {
-                if (image.lat == pin.latitude && image.lon == pin.longitude) {
-                    filteredImageList.append(image)
-                }
-            }
-            return filteredImageList
+        do { return try stack!.context.fetch(fetchRequest) as! [ImageData]
         } catch {
             print("There was an error fetching the list of pins.")
             return [ImageData]()
