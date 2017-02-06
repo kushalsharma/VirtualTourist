@@ -36,7 +36,8 @@ class PhotosController: UIViewController, UICollectionViewDataSource, UICollecti
         
         if images?.count == 0 {
             if pin?.pages != 0 {
-                FlickrClient.getPhotoResponse(pin: pin!, pageNo: String(arc4random_uniform(UInt32((pin?.pages)!)) + 1), photoResponseListener: self)
+                let pageNo: UInt32 = UInt32((pin?.pages)!) > 200 ? 200 : UInt32((pin?.pages)!)
+                FlickrClient.getPhotoResponse(pin: pin!, pageNo: String(arc4random_uniform(pageNo) + 1), photoResponseListener: self)
             } else {
                 getNewImagesButton.isEnabled = false
                 getNewImagesButton.setTitle("Images not available", for: .normal)
@@ -57,7 +58,7 @@ class PhotosController: UIViewController, UICollectionViewDataSource, UICollecti
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoCell", for: indexPath as IndexPath) as! PhotoCell
         cell.photoImageView.image = nil
         cell.photoImageView.backgroundColor = UIColor.lightGray
-        cell.photoImageView.downloadedFrom(url: URL(string: images![indexPath.item].url!)!)
+        cell.photoImageView.downloadedFrom(stack: stack!, imageData: (images?[indexPath.item])!)
         return cell
     }
     
@@ -119,8 +120,8 @@ class PhotosController: UIViewController, UICollectionViewDataSource, UICollecti
                 print("Error saving context")
             }
         }
-        let pageNo = String(arc4random_uniform(UInt32((pin?.pages)!)) + 1)
-        FlickrClient.getPhotoResponse(pin: pin!, pageNo: pageNo, photoResponseListener: self)
+        let pageNo: UInt32 = UInt32((pin?.pages)!) > 200 ? 200 : UInt32((pin?.pages)!)
+        FlickrClient.getPhotoResponse(pin: pin!, pageNo: String(arc4random_uniform(pageNo) + 1), photoResponseListener: self)
     }
     
     func onSuccess(photoResponse: PhotoResponse, pin: Pin) {
@@ -148,22 +149,29 @@ class PhotosController: UIViewController, UICollectionViewDataSource, UICollecti
 // Image view extention
 
 extension UIImageView {
-    func downloadedFrom(url: URL, contentMode mode: UIViewContentMode = .scaleAspectFit) {
-        contentMode = mode
-        URLSession.shared.dataTask(with: url) { (data, response, error) in
-            guard
-                let httpURLResponse = response as? HTTPURLResponse, httpURLResponse.statusCode == 200,
-                let mimeType = response?.mimeType, mimeType.hasPrefix("image"),
-                let data = data, error == nil,
-                let image = UIImage(data: data)
-                else { return }
-            DispatchQueue.main.async() { () -> Void in
-                self.image = image
-            }
-            }.resume()
-    }
-    func downloadedFrom(link: String, contentMode mode: UIViewContentMode = .scaleAspectFit) {
-        guard let url = URL(string: link) else { return }
-        downloadedFrom(url: url, contentMode: mode)
+    func downloadedFrom(stack: CoreDataStack, imageData: ImageData, contentMode mode: UIViewContentMode = .scaleAspectFit) {
+        guard let imageBlob: Data = imageData.imageBlob as Data? else {
+            let url = URL(string: imageData.url!)
+            contentMode = mode
+            URLSession.shared.dataTask(with: url!) { (data, response, error) in
+                guard
+                    let httpURLResponse = response as? HTTPURLResponse, httpURLResponse.statusCode == 200,
+                    let mimeType = response?.mimeType, mimeType.hasPrefix("image"),
+                    let data = data, error == nil,
+                    let image = UIImage(data: data)
+                    else { return }
+                DispatchQueue.main.async() { () -> Void in
+                    self.image = image
+                    imageData.imageBlob = UIImagePNGRepresentation(image) as NSData?
+                    do {
+                        try stack.saveContext()
+                    } catch {
+                        print("Error saving context")
+                    }
+                }
+                }.resume()
+            return
+        }
+        self.image = UIImage(data: imageBlob as Data, scale: 1.0)
     }
 }
